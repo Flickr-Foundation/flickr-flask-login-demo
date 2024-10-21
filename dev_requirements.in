@@ -1,0 +1,4 @@
+interrogate
+mypy
+ruff
+pytest-cov
