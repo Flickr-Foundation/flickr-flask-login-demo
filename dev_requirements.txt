@@ -10,7 +10,7 @@ click==8.1.7
     #   interrogate
 colorama==0.4.6
     # via interrogate
-coverage==7.6.4
+coverage[toml]==7.6.4
     # via pytest-cov
 flask==3.0.3
     # via -r requirements.in
@@ -26,7 +26,7 @@ markupsafe==3.0.2
     # via
     #   jinja2
     #   werkzeug
-mypy==1.12.1
+mypy==1.13.0
     # via -r dev_requirements.in
 mypy-extensions==1.0.0
     # via mypy
