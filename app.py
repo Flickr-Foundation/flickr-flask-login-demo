@@ -1,8 +1,16 @@
 """
 A demo Flask app.
 """
+
 from flask import Flask, redirect, url_for, session, abort, request
-from flask_login import LoginManager, current_user, UserMixin, login_required, login_user, logout_user
+from flask_login import (
+    LoginManager,
+    current_user,
+    UserMixin,
+    login_required,
+    login_user,
+    logout_user,
+)
 from authlib.integrations.httpx_client import OAuth1Client
 import json
 import keyring
@@ -32,10 +40,12 @@ login.login_view = "homepage"
 # Initialize the login manager with the app
 login.init_app(app)
 
+
 class User(UserMixin):
     """
     A simple user class that inherits from Flask-Login's UserMixin.
     """
+
     def __init__(self, user_id):
         """
         Initialize a new User instance.
@@ -45,13 +55,14 @@ class User(UserMixin):
         """
         self.id = user_id
 
+
 @login.user_loader
 def load_user(user_id: str) -> User:
     """
     Basic user loader, read here for more, you will need to implement this (PROPERLY)
     https://flask-login.readthedocs.io/en/latest/#how-it-works
     """
-    
+
     user = User(user_id)
 
     # If you want to validate the user, you can do so here
@@ -65,9 +76,12 @@ def homepage() -> str:
     """
     if not current_user.is_authenticated:
         return "This is a Flask app to demonstrate OAuth login using Flickr. You are logged out. <a href='/authorize'>Login</a>"
-    
-    return (f"This is a Flask app to demonstrate OAuth login using Flickr. You are logged in as user {current_user.id}. "
-            f"Go view the <a href='/secret'>secret page</a>. <a href='{url_for('logout')}'>Logout</a>")
+
+    return (
+        f"This is a Flask app to demonstrate OAuth login using Flickr. You are logged in as user {current_user.id}. "
+        f"Go view the <a href='/secret'>secret page</a>. <a href='{url_for('logout')}'>Logout</a>"
+    )
+
 
 @app.route("/authorize")
 def authorize():
@@ -81,7 +95,7 @@ def authorize():
     client = OAuth1Client(
         client_id=app.config["CLIENT_ID"],
         client_secret=app.config["CLIENT_SECRET"],
-        signature_type="QUERY"
+        signature_type="QUERY",
     )
 
     # Step 1: Getting a Request Token
@@ -161,6 +175,7 @@ def callback():
 
     return redirect(url_for("homepage"))
 
+
 @app.route("/logout")
 def logout():
     """
@@ -168,6 +183,7 @@ def logout():
     """
     logout_user()
     return redirect(url_for("homepage"))
+
 
 @app.route("/secret")
 @login_required
