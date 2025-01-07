@@ -38,7 +38,7 @@ py==1.11.0
     # via interrogate
 pytest==8.3.3
     # via pytest-cov
-pytest-cov==5.0.0
+pytest-cov==6.0.0
     # via -r dev_requirements.in
 ruff==0.8.6
     # via -r dev_requirements.in
