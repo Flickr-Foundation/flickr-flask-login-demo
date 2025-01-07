@@ -1,8 +1,8 @@
 """
 A demo Flask app.
 """
-from flask import Flask, redirect, url_for, session
-from flask_login import LoginManager, current_user, UserMixin, login_required
+from flask import Flask, redirect, url_for, session, abort, request
+from flask_login import LoginManager, current_user, UserMixin, login_required, login_user, logout_user
 from authlib.integrations.httpx_client import OAuth1Client
 import json
 import keyring
@@ -45,14 +45,17 @@ class User(UserMixin):
         """
         self.id = user_id
 
-
 @login.user_loader
 def load_user(user_id: str) -> User:
     """
     Basic user loader, read here for more, you will need to implement this (PROPERLY)
     https://flask-login.readthedocs.io/en/latest/#how-it-works
     """
-    return User(user_id)
+    
+    user = User(user_id)
+
+    # If you want to validate the user, you can do so here
+    return user
 
 
 @app.route("/")
@@ -63,7 +66,8 @@ def homepage() -> str:
     if not current_user.is_authenticated:
         return "This is a Flask app to demonstrate OAuth login using Flickr. You are logged out. <a href='/authorize'>Login</a>"
     
-    return f"This is a Flask app to demonstrate OAuth login using Flickr. You are logged in as user {current_user.id}."
+    return (f"This is a Flask app to demonstrate OAuth login using Flickr. You are logged in as user {current_user.id}. "
+            f"Go view the <a href='/secret'>secret page</a>. <a href='{url_for('logout')}'>Logout</a>")
 
 @app.route("/authorize")
 def authorize():
@@ -73,6 +77,7 @@ def authorize():
     if current_user.is_authenticated:
         return redirect(url_for("homepage"))
 
+    # Create an OAuth1Client with the Flickr API key and secret
     client = OAuth1Client(
         client_id=app.config["CLIENT_ID"],
         client_secret=app.config["CLIENT_SECRET"],
@@ -116,7 +121,53 @@ def callback():
     """
     Callback from Flickr.
     """
-    return "This is a callback from Flickr."
+    try:
+        request_token = json.loads(session.pop("flickr_oauth_request_token"))
+    except (KeyError, ValueError):
+        abort(400)
+
+    # Create an OAuth1Client with the Flickr API key and secret, and the request token
+    client = OAuth1Client(
+        client_id=app.config["CLIENT_ID"],
+        client_secret=app.config["CLIENT_SECRET"],
+        token=request_token["oauth_token"],
+        token_secret=request_token["oauth_token_secret"],
+    )
+
+    # Parse the authorization response from Flickr
+    client.parse_authorization_response(request.url)
+
+    # Step 3: Exchanging the Request Token for an Access Token
+    #
+    # This token gets saved in the OAuth1Client, so we don't need
+    # to inspect the response directly.
+    #
+    # See https://www.flickr.com/services/api/auth.oauth.html#access_token
+    token = client.fetch_access_token(
+        url="https://www.flickr.com/services/oauth/access_token"
+    )
+
+    # The token will be of the form:
+    #
+    #     {'fullname': 'Flickr User',
+    #      'oauth_token': '…',
+    #      'oauth_token_secret': '…',
+    #      'user_nsid': '123456789@N04',
+    #      'username': 'flickruser'}
+
+    # Grab the user stub
+    user = load_user(user_id=token["user_nsid"])
+    login_user(user)
+
+    return redirect(url_for("homepage"))
+
+@app.route("/logout")
+def logout():
+    """
+    Logout the user.
+    """
+    logout_user()
+    return redirect(url_for("homepage"))
 
 @app.route("/secret")
 @login_required
@@ -124,4 +175,4 @@ def secret():
     """
     A secret page.
     """
-    return "This is a secret page."
+    return f'This is a secret page. <a href="{url_for("logout")}">Logout</a>'
