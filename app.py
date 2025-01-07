@@ -14,6 +14,7 @@ from flask_login import (
 from authlib.integrations.httpx_client import OAuth1Client
 import json
 import keyring
+import werkzeug
 
 app = Flask(__name__)
 
@@ -46,7 +47,7 @@ class User(UserMixin):
     A simple user class that inherits from Flask-Login's UserMixin.
     """
 
-    def __init__(self, user_id):
+    def __init__(self, user_id: str):
         """
         Initialize a new User instance.
 
@@ -84,7 +85,7 @@ def homepage() -> str:
 
 
 @app.route("/authorize")
-def authorize():
+def authorize() -> werkzeug.Response:
     """
     Authorize the user.
     """
@@ -131,7 +132,7 @@ def authorize():
 
 
 @app.route("/callback")
-def callback():
+def callback() -> werkzeug.Response:
     """
     Callback from Flickr.
     """
@@ -177,7 +178,7 @@ def callback():
 
 
 @app.route("/logout")
-def logout():
+def logout() -> werkzeug.Response:
     """
     Logout the user.
     """
@@ -187,7 +188,7 @@ def logout():
 
 @app.route("/secret")
 @login_required
-def secret():
+def secret() -> str:
     """
     A secret page.
     """
