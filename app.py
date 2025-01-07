@@ -4,12 +4,12 @@ A demo Flask app.
 
 from flask import Flask, redirect, url_for, session, abort, request
 from flask_login import (
-    LoginManager,
-    current_user,
     UserMixin,
-    login_required,
+    LoginManager,
     login_user,
     logout_user,
+    current_user,
+    login_required,
 )
 from authlib.integrations.httpx_client import OAuth1Client
 import json
