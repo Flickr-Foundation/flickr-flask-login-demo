@@ -1,2 +1,3 @@
 .coverage
 *.pyc
+/flickr_flask_auth.egg-info
