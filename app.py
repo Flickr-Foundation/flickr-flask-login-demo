@@ -76,10 +76,14 @@ def homepage() -> str:
     A basic homepage.
     """
     if not current_user.is_authenticated:
-        return "This is a Flask app to demonstrate OAuth login using Flickr. You are logged out. <a href='/authorize'>Login</a>"
+        return (
+            "This is a Flask app to demonstrate OAuth login using Flickr. "
+            "You are logged out. <a href='/authorize'>Login</a>"
+        )
 
     return (
-        f"This is a Flask app to demonstrate OAuth login using Flickr. You are logged in as user {current_user.id}. "
+        "This is a Flask app to demonstrate OAuth login using Flickr. "
+        f"You are logged in as user {current_user.id}. "
         f"Go view the <a href='/secret'>secret page</a>. <a href='{url_for('logout')}'>Logout</a>"
     )
 
