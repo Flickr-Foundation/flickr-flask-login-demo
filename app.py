@@ -47,24 +47,24 @@ class User(UserMixin):
     A simple user class that inherits from Flask-Login's UserMixin.
     """
 
-    def __init__(self, user_id: str):
+    def __init__(self, id: str):
         """
         Initialize a new User instance.
 
         Args:
-            user_id: The unique identifier for this user
+            id: The unique identifier for this user
         """
-        self.id = user_id
+        self.id = id
 
 
 @login.user_loader
-def load_user(user_id: str) -> User:
+def load_user(id: str) -> User:
     """
     Basic user loader, read here for more, you will need to implement this (PROPERLY)
     https://flask-login.readthedocs.io/en/latest/#how-it-works
     """
 
-    user = User(user_id)
+    user = User(id)
 
     # If you want to validate the user, you can do so here
     return user
@@ -175,7 +175,7 @@ def callback() -> werkzeug.Response:
     #      'username': 'flickruser'}
 
     # Grab the user stub
-    user = load_user(user_id=token["user_nsid"])
+    user = load_user(id=token["user_nsid"])
     login_user(user)
 
     return redirect(url_for("homepage"))
