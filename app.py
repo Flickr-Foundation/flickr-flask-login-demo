@@ -97,7 +97,7 @@ def homepage() -> str:
             </p>
             
             <p>
-                You can visit <strong><a href="{url_for("secret")}">the secret page</a></strong> or
+                You can visit the <strong><a href="{url_for("secret")}">secret page</a></strong> or
                 <strong><a href="{url_for("logout")}">log out</a></strong>.
             </p>
         """

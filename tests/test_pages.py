@@ -37,10 +37,10 @@ def test_homepage_when_logged_out(logged_out_client: FlaskClient) -> None:
     assert resp.status_code == 200
 
     # It has the correct message
-    assert b"You are logged out" in resp.data
+    assert "logged out" in resp.text
 
     # It has a link to login
-    assert b"<a href='/authorize'>Login</a>" in resp.data
+    assert '<a href="/authorize">log in</a>' in resp.text
 
 
 def test_homepage_when_logged_in(
@@ -53,16 +53,16 @@ def test_homepage_when_logged_in(
     assert resp.status_code == 200
 
     # It has the correct message
-    assert b"You are logged in" in resp.data
+    assert "logged in" in resp.text
 
     # It has a link to logout
-    assert b"<a href='/logout'>Logout</a>" in resp.data
+    assert '<a href="/logout">log out</a>' in resp.text
 
     # It has a link to the secret page
-    assert b"<a href='/secret'>secret page</a>" in resp.data
+    assert '<a href="/secret">secret page</a>' in resp.text
 
     # It displays the user's id
-    assert str(user.id).encode() in resp.data
+    assert user.user_nsid in resp.text
 
 
 def test_secret_page_when_logged_out(logged_out_client: FlaskClient) -> None:
