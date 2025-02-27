@@ -1,6 +1,23 @@
-# Flickr Flash Auth
+# flickr-flask-login-demo
 
-This is a boilerplate repo for making a "hello world" page with Flickr Auth.
+This is a demo app that allows users to log in to your Flask app using Flickr and OAuth.
+
+It implements a very basic flow:
+
+```mermaid
+flowchart LR
+    H[<b>homepage</b><br>you aren’t logged in] -->|log in| S[<b>secret page</b><br>you’re logged in as Flickr member &lt;name&gt;]
+    S -->|log out| H
+```
+
+This repo is a demo for teaching purposes, so you can add Flickr login to your own Flask apps.
+It includes extensive comments and tests.
+
+## Recommended reading
+
+
+
+---
 
 # Development
 
