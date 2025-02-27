@@ -1,2 +1,5 @@
 .coverage
 *.pyc
+/flickr_flask_auth.egg-info
+/.ruff.toml
+/.ruff_cache
