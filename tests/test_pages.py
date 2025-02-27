@@ -5,7 +5,7 @@ If we had more pages, we would split them out into separate files.
 """
 
 from flask.testing import FlaskClient
-from app import User
+from app import FlickrUser
 
 """
 Test
@@ -43,7 +43,9 @@ def test_homepage_when_logged_out(logged_out_client: FlaskClient) -> None:
     assert b"<a href='/authorize'>Login</a>" in resp.data
 
 
-def test_homepage_when_logged_in(logged_in_client: FlaskClient, user: User) -> None:
+def test_homepage_when_logged_in(
+    logged_in_client: FlaskClient, user: FlickrUser
+) -> None:
     """
     The homepage says "Logged in" when the user is logged in.
     """
