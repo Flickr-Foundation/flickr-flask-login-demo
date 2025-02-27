@@ -11,6 +11,7 @@ import secrets
 from flask_login import FlaskLoginClient
 from app import User
 
+
 @pytest.fixture
 def user() -> User:
     """
@@ -21,6 +22,7 @@ def user() -> User:
     user = User(id=f"test@{random_string}")
 
     return user
+
 
 @pytest.fixture()
 def logged_out_client() -> Iterator[FlaskClient]:
@@ -34,6 +36,7 @@ def logged_out_client() -> Iterator[FlaskClient]:
     with app.test_client() as client:
         yield client
 
+
 @pytest.fixture
 def logged_in_client(user: User) -> Iterator[FlaskClient]:
     """
@@ -42,6 +45,7 @@ def logged_in_client(user: User) -> Iterator[FlaskClient]:
     See https://flask-login.readthedocs.io/en/latest/#automated-testing
     """
     from app import app
+
     app.test_client_class = FlaskLoginClient
     with app.test_client(user=user) as client:
         yield client

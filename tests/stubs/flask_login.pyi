@@ -1,4 +1,7 @@
 from typing import Any, Optional, Protocol
+
+from flask.testing import FlaskClient
+
 from app import User
 
 class UserMixin(Protocol):
@@ -21,3 +24,5 @@ def logout_user() -> None: ...
 def login_required(func: Any) -> Any: ...
 
 current_user: User
+
+class FlaskLoginClient(FlaskClient): ...
