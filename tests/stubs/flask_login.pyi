@@ -2,7 +2,9 @@ from typing import Any, Optional, Protocol
 
 from flask.testing import FlaskClient
 
-from app import User
+from app import FlickrUser
+
+current_user: FlickrUser
 
 class UserMixin(Protocol):
     @property
@@ -22,7 +24,5 @@ def login_user(
 ) -> bool: ...
 def logout_user() -> None: ...
 def login_required(func: Any) -> Any: ...
-
-current_user: User
 
 class FlaskLoginClient(FlaskClient): ...
