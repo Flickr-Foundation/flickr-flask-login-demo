@@ -180,6 +180,12 @@ def callback() -> werkzeug.Response:
     We can use these tokens to get an access token for the user which
     can make Flickr API requests on their behalf.
     """
+    # If the user is already logged in, we don't need to send them
+    # through the authentication flow here -- we can redirect them
+    # straight to the homepage.
+    if current_user.is_authenticated:
+        return redirect(url_for("homepage"))
+
     # Get the request token from the Flask session, which we saved in
     # the /authorize step.
     #
@@ -190,7 +196,7 @@ def callback() -> werkzeug.Response:
 
         oauth_token = request_token["oauth_token"]
         oauth_token_secret = request_token["oauth_token_secret"]
-    except (KeyError, ValueError):
+    except (KeyError, TypeError, ValueError):
         abort(400)
 
     # Create an OAuth1Client with the Flickr API key and secret.

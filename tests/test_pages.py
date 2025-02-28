@@ -1,32 +1,15 @@
 """
-Tests for the pages, i.e. /
+Tests for the two pages in the app, the homepage and the secret page.
 
-If we had more pages, we would split them out into separate files.
+We want to test whether they're visible to logged in/logged out users,
+and that they display the right information.
+
+In a larger app with more complex pages, we might break these into
+separate test files, e.g. one file per route.
 """
 
 from flask.testing import FlaskClient
 from app import FlickrUser
-
-"""
-Test
-Logged out homepage, says Logged out.
-Logged out homepage, has a link to login.
-Logged in homepage, says Logged in.
-Logged in homepage, has a link to logout.
-Logged in homepage, has a link to secret page.
-Logged in homepage, displays user's id.
-Secret page, not viewable when logged out.
-Secret page, viewable when logged in.
-"""
-
-
-def test_can_load_homepage(logged_out_client: FlaskClient) -> None:
-    """
-    You can load the homepage.
-    """
-    resp = logged_out_client.get("/")
-    assert resp.status_code == 200
-    assert b"This is a Flask app" in resp.data
 
 
 def test_homepage_when_logged_out(logged_out_client: FlaskClient) -> None:
@@ -81,4 +64,4 @@ def test_secret_page_when_logged_in(logged_in_client: FlaskClient) -> None:
     assert resp.status_code == 200
 
     # It has the correct message
-    assert b"This is a secret page" in resp.data
+    assert "<strong>secret page</strong>" in resp.text

@@ -5,3 +5,4 @@ mypy
 pytest-cov
 ruff
 silver-nitrate
+vcrpy
