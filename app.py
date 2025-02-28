@@ -4,6 +4,7 @@ A demo app that allows users to log in using Flickr and OAuth.
 
 import sys
 
+from authlib.integrations.httpx_client import OAuth1Client
 from flask import Flask, current_app, redirect, url_for, session, abort, request
 from flask_login import (
     UserMixin,
@@ -13,8 +14,6 @@ from flask_login import (
     current_user,
     login_required,
 )
-from authlib.integrations.httpx_client import OAuth1Client
-import json
 import keyring
 import werkzeug
 
@@ -33,6 +32,10 @@ def create_app() -> Flask:
     #
     # See https://flask.palletsprojects.com/en/stable/config/#SECRET_KEY
     app.config["SECRET_KEY"] = "supersecretkey"
+
+    # Set the permissions that the app needs from Flickr -- read, write
+    # or delete.
+    app.config["FLICKR_PERMISSIONS"] = "read"
 
     # Get the Flickr API credentials from the system keychain.
     #
@@ -105,35 +108,50 @@ def homepage() -> str:
 
 def authorize() -> werkzeug.Response:
     """
-    Authorize the user.
+    This is the first step of logging in with Flickr.
+
+    We get a request token from Flickr, and then we redirect the user
+    to Flickr.com where they can log in and approve our app.
     """
+    # If the user is already logged in, we don't need to send them
+    # through the authentication flow here -- we can redirect them
+    # straight to the homepage.
     if current_user.is_authenticated:
         return redirect(url_for("homepage"))
 
     # Create an OAuth1Client with the Flickr API key and secret
-    client = OAuth1Client(
+    oauth_client = OAuth1Client(
         client_id=current_app.config["CLIENT_ID"],
         client_secret=current_app.config["CLIENT_SECRET"],
         signature_type="QUERY",
     )
 
-    # Step 1: Getting a Request Token
+    # Where will the user be redirected after they approve our app
+    # on Flickr.com?
     #
-    # See https://www.flickr.com/services/api/auth.oauth.html#request_token
-    #
-    # Note: we could put the next_url parameter in here, but this
-    # causes issues with the OAuth 1.0a signatures, so I'm passing that
-    # in the Flask session instead.
+    # We use ``_external=True`` because we want an absolute URL rather
+    # than a relative URL.  It's the difference between ``/callback``
+    # and ``https://example.com/callback``.
     callback_url = url_for("callback", _external=True)
 
-    request_token_resp = client.fetch_request_token(
+    # Step 1: Get a Request Token
+    #
+    # This will return an OAuth token and secret, in the form:
+    #
+    #     {'oauth_callback_confirmed': 'true',
+    #      'oauth_token': '721…b37',
+    #      'oauth_token_secret': '7e2…91a'}
+    #
+    # See https://www.flickr.com/services/api/auth.oauth.html#request_token
+    request_token = oauth_client.fetch_request_token(
         url="https://www.flickr.com/services/oauth/request_token",
         params={"oauth_callback": callback_url},
     )
 
-    request_token = request_token_resp["oauth_token"]
-
-    session["flickr_oauth_request_token"] = json.dumps(request_token_resp)
+    # Save the request token in the user session -- we'll need it in
+    # the Flickr callback when we exchange the request token for
+    # an access token.
+    session["request_token"] = request_token
 
     # Step 2: Getting the User Authorization
     #
@@ -141,54 +159,76 @@ def authorize() -> werkzeug.Response:
     # can choose to authorize the app (or not).
     #
     # See https://www.flickr.com/services/api/auth.oauth.html#request_token
-    authorization_url = client.create_authorization_url(
-        url="https://www.flickr.com/services/oauth/authorize?perms=read",
-        request_token=request_token,
+    authorization_url = oauth_client.create_authorization_url(
+        url=f"https://www.flickr.com/services/oauth/authorize?perms={current_app.config['FLICKR_PERMISSIONS']}"
     )
 
+    # Redirect the user to the Flickr.com URL where they can log in
+    # and approve our app.
     return redirect(authorization_url)
 
 
 def callback() -> werkzeug.Response:
     """
-    Callback from Flickr.
+    Handle the authorization callback from Flickr.
+
+    After a user approves our app on Flickr.com, they'll be redirected
+    back to our app at this URL with some extra parameters, e.g.
+
+        /callback?oauth_token=721…3fd&oauth_verifier=79f…883
+
+    We can use these tokens to get an access token for the user which
+    can make Flickr API requests on their behalf.
     """
+    # Get the request token from the Flask session, which we saved in
+    # the /authorize step.
+    #
+    # If we can't retrieve this token for some reason, we can't complete
+    # the login process, so we need to bail out.
     try:
-        request_token = json.loads(session.pop("flickr_oauth_request_token"))
+        request_token = session.pop("request_token")
+
+        oauth_token = request_token["oauth_token"]
+        oauth_token_secret = request_token["oauth_token_secret"]
     except (KeyError, ValueError):
         abort(400)
 
-    # Create an OAuth1Client with the Flickr API key and secret, and the request token
-    client = OAuth1Client(
+    # Create an OAuth1Client with the Flickr API key and secret.
+    #
+    # We need to include the request token that we received in the
+    # previous step.
+    oauth_client = OAuth1Client(
         client_id=current_app.config["CLIENT_ID"],
         client_secret=current_app.config["CLIENT_SECRET"],
-        token=request_token["oauth_token"],
-        token_secret=request_token["oauth_token_secret"],
+        token=oauth_token,
+        token_secret=oauth_token_secret,
     )
 
-    # Parse the authorization response from Flickr
-    client.parse_authorization_response(request.url)
+    # Parse the authorization response from Flickr -- that is, extract
+    # the OAuth query parameters from the URL, and add them to the client.
+    oauth_client.parse_authorization_response(request.url)
 
     # Step 3: Exchanging the Request Token for an Access Token
     #
-    # This token gets saved in the OAuth1Client, so we don't need
-    # to inspect the response directly.
-    #
-    # See https://www.flickr.com/services/api/auth.oauth.html#access_token
-    token = client.fetch_access_token(
-        url="https://www.flickr.com/services/oauth/access_token"
-    )
-
-    # The token will be of the form:
+    # The access token we receive will be of the form:
     #
     #     {'fullname': 'Flickr User',
     #      'oauth_token': '…',
     #      'oauth_token_secret': '…',
     #      'user_nsid': '123456789@N04',
     #      'username': 'flickruser'}
+    #
+    # See https://www.flickr.com/services/api/auth.oauth.html#access_token
+    access_token = oauth_client.fetch_access_token(
+        url="https://www.flickr.com/services/oauth/access_token"
+    )
 
-    # Grab the user stub
-    user = FlickrUser(user_nsid=token["user_nsid"], name=token["username"])
+    # Create a stub user, and log them in with Flask-Login.  Then we
+    # redirect to the homepage, where it will recognise them as
+    # being logged in.
+    user = FlickrUser(
+        user_nsid=access_token["user_nsid"], name=access_token["username"]
+    )
     login_user(user)
 
     return redirect(url_for("homepage"))
@@ -196,7 +236,7 @@ def callback() -> werkzeug.Response:
 
 def logout() -> werkzeug.Response:
     """
-    Logout the user.
+    Log out the user.
     """
     logout_user()
     return redirect(url_for("homepage"))
@@ -205,9 +245,17 @@ def logout() -> werkzeug.Response:
 @login_required
 def secret() -> str:
     """
-    A secret page.
+    A secret page, which is only accessible to logged-in users.
     """
-    return f'This is a secret page. <a href="{url_for("logout")}">Logout</a>'
+    return f"""
+        <p>
+            This is a <strong>secret page</strong> which is only visible to logged-in users.
+        </p>
+        <p>
+            You can <strong><a href="{url_for("homepage")}">return to the homepage</a></strong> 
+            or <strong><a href="{url_for("logout")}">log out</a></strong>.
+        </p>
+    """
 
 
 class FlickrUser(UserMixin):
