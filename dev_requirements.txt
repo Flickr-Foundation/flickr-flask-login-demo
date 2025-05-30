@@ -95,7 +95,7 @@ pytest-cov==6.1.1
     # via -r dev_requirements.in
 pyyaml==6.0.2
     # via vcrpy
-ruff==0.11.11
+ruff==0.11.12
     # via -r dev_requirements.in
 secretstorage==3.3.3
     # via keyring
