@@ -75,12 +75,14 @@ more-itertools==10.6.0
     #   jaraco-functools
 multidict==6.2.0
     # via yarl
-mypy==1.15.0
+mypy==1.16.0
     # via -r dev_requirements.in
 mypy-extensions==1.0.0
     # via mypy
 packaging==24.2
     # via pytest
+pathspec==0.12.1
+    # via mypy
 pluggy==1.5.0
     # via pytest
 propcache==0.3.1
