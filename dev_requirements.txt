@@ -84,7 +84,9 @@ packaging==24.2
 pathspec==0.12.1
     # via mypy
 pluggy==1.5.0
-    # via pytest
+    # via
+    #   pytest
+    #   pytest-cov
 propcache==0.3.1
     # via yarl
 py==1.11.0
@@ -93,7 +95,7 @@ pycparser==2.22
     # via cffi
 pytest==8.3.5
     # via pytest-cov
-pytest-cov==6.2.0
+pytest-cov==6.2.1
     # via -r dev_requirements.in
 pyyaml==6.0.2
     # via vcrpy
