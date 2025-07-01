@@ -4,6 +4,6 @@ interrogate
 mypy
 pytest-cov
 ruff
-silver-nitrate
+silver-nitrate[cassettes,mock_keyring]>=1.8.1
 types-Authlib
 vcrpy
