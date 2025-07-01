@@ -7,8 +7,9 @@ from collections.abc import Iterator
 from flask import Flask
 from flask.testing import FlaskClient
 from flask_login import FlaskLoginClient
+from keyring.backend import KeyringBackend
 from nitrate.cassettes import *  # noqa: F403
-from nitrate.passwords import use_in_memory_keyring
+from nitrate.mock_keyring import *  # noqa: F403
 import os
 import pytest
 import vcr
@@ -26,7 +27,7 @@ def user() -> FlickrUser:
 
 
 @pytest.fixture
-def app() -> Flask:
+def app(mock_keyring: KeyringBackend) -> Flask:
     """
     Creates a Flask app for testing.
     """
@@ -35,12 +36,8 @@ def app() -> Flask:
     client_id = os.environ.get("CLIENT_ID", "123")
     client_secret = os.environ.get("CLIENT_SECRET", "456")
 
-    use_in_memory_keyring(
-        initial_passwords={
-            ("flickr_flask_login_demo", "key"): client_id,
-            ("flickr_flask_login_demo", "secret"): client_secret,
-        }
-    )
+    mock_keyring.set_password("flickr_flask_login_demo", "key", client_id)
+    mock_keyring.set_password("flickr_flask_login_demo", "secret", client_secret)
 
     app = create_app()
     app.config["TESTING"] = True
