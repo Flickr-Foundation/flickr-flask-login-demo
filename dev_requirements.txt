@@ -20,11 +20,12 @@ click==8.1.8
     #   interrogate
 colorama==0.4.6
     # via interrogate
-coverage==7.8.0
+coverage[toml]==7.8.0
     # via pytest-cov
 cryptography==44.0.2
     # via
     #   authlib
+    #   secretstorage
     #   types-authlib
 flask==3.1.1
     # via
@@ -55,6 +56,10 @@ jaraco-context==6.0.1
     # via keyring
 jaraco-functools==4.1.0
     # via keyring
+jeepney==0.9.0
+    # via
+    #   keyring
+    #   secretstorage
 jinja2==3.1.6
     # via flask
 keyring==25.6.0
@@ -101,9 +106,11 @@ pytest-vcr==1.0.2
     # via silver-nitrate
 pyyaml==6.0.2
     # via vcrpy
-ruff==0.12.1
+ruff==0.12.2
     # via -r dev_requirements.in
-silver-nitrate==1.8.1
+secretstorage==3.3.3
+    # via keyring
+silver-nitrate[cassettes,mock-keyring]==1.8.1
     # via -r dev_requirements.in
 sniffio==1.3.1
     # via anyio
