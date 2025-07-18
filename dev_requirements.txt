@@ -103,7 +103,7 @@ more-itertools==10.6.0
     #   jaraco-functools
 multidict==6.2.0
     # via yarl
-mypy==1.16.1
+mypy==1.17.0
     # via -r dev_requirements.in
 mypy-extensions==1.0.0
     # via mypy
