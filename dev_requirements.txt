@@ -6,7 +6,7 @@ anyio==4.9.0
     #   httpx
 attrs==25.3.0
     # via interrogate
-authlib==1.6.1
+authlib==1.6.5
     # via -r requirements.txt
 blinker==1.9.0
     # via
